@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+<body>
+    {% include "includes/menu.html" %}
+    <style>
+
+        .cart-item {
+            margin-bottom: 20px;
+        }
+
+        .card-body {
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-text {
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .total-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .btn-action {
+            width: 100%;
+        }
+
+        #place-order {
+            width: 100%;
+            font-size: 1.2rem;
+        }
+
+        .empty-cart-msg {
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #6c757d;
+        }
+    </style>
+
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Your Cart</h1>
+
+        {% if cart %}
+            <div class="row">
+                {% for product_id, product in cart.items %}
+                    <div class="col-md-4 mb-4 cart-item">
+                        <div class="card shadow-sm">
+                            <img src="{% if product.image %}{{ product.image.url }}{% else %}{% static 'images/placeholder.png' %}{% endif %}" class="card-img-top" alt="{{ product.name }}" style="object-fit: cover;">
+                            
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text text-muted">Price: ${{ product.price }}</p>
+
+                                <div class="form-group">
+                                    <label for="quantity-{{ product_id }}" class="text-muted">Quantity</label>
+                                    <input type="number" id="quantity-{{ product_id }}" class="form-control" value="{{ product.quantity }}" min="1">
+                                </div>
+
+                                <button class="btn btn-danger btn-action remove-item" data-id="{{ product_id }}">Remove</button>
+                                <button class="btn btn-primary btn-action update-quantity" data-id="{{ product_id }}">Update Quantity</button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <p class="total-price">Total: $<span id="total-price">{{ total_price }}</span></p>
+                <button class="btn btn-success" id="place-order">Place Order</button>
+            </div>
+        {% else %}
+            <p class="empty-cart-msg">Your cart is empty.</p>
+        {% endif %}
+    </div>
+    <script>
+        $(document).ready(function() {
+            $('.remove-item').click(function() {
+                var productId = $(this).data('id');
+
+                $.ajax({
+                    url: '{% url "remove_from_cart" 0 %}'.replace('0', productId),
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            alert(response.message);
+                            location.reload();
+                        }
+                    }
+                });
+            });
+
+            $('.update-quantity').click(function() {
+                var productId = $(this).data('id');
+                var quantity = $('#quantity-' + productId).val();
+
+                if (quantity > 0) {
+                    $.ajax({
+                        url: '{% url "update_cart_quantity" 0 0 %}'.replace('0', productId).replace('0', quantity),
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                alert(response.message);
+                                location.reload();
+                            }
+                        }
+                    });
+                } else {
+                    alert('Quantity must be at least 1');
+                }
+            });
+
+            $('#place-order').click(function () {
+            $.ajax({
+                url: '{% url "place_order" %}',
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    if (response.status === 'success') {
+                        alert(response.message);
+                        location.href="/orders";
+                    }
+                }
+            });
+        });
+        });
+    </script>
+
+</body>
+</html>

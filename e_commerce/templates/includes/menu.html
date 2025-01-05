@@ -1,0 +1,25 @@
+<div class="navbar">
+    <div class="brand">MyShop</div>
+    <div class="menu">
+        <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+        <a href="{% url 'products' %}" class="{% if request.resolver_match.url_name == 'products' %}active{% endif %}">Products</a>
+        <a href="{% url 'cart' %}" class="{% if request.resolver_match.url_name == 'cart' %}active{% endif %}">Shopping Cart</a>
+        <a href="{% url 'orders' %}" class="{% if request.resolver_match.url_name == 'orders' %}active{% endif %}">Orders</a>
+    </div>
+    <div class="auth-menu">
+        {% if user.is_authenticated %}
+            <div class="profile-menu">
+                <a href="{% url 'profile' %}" class="profile-icon">
+                    <span class="profile-placeholder">&#128100;</span>Profile
+                </a>
+            </div>
+            <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="btn-logout">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}" class="{% if request.resolver_match.url_name == 'login' %}active{% endif %}">Login</a>
+            <a href="{% url 'register' %}" class="{% if request.resolver_match.url_name == 'register' %}active{% endif %}">Register</a>
+        {% endif %}
+    </div>
+</div>
